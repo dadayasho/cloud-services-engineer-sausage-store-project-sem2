@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  annotations:
+    helm.sh/hook-weight: "-5"
+spec:
+  serviceName: postgres
+  selector:
+   matchLabels:
+    app: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:latest
+          imagePullPolicy: "IfNotPresent"
+          envFrom:
+          - configMapRef:
+              name: mongodb-conf
+
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+---
+    kind: PersistentVolume
+    apiVersion: v1
+    metadata:
+      name: postgres-pv-volume
+      labels:
+        type: local
+        app: postgres
+    spec:
+      storageClassName: manual
+      capacity:
+        storage: 8Gi
+      accessModes:
+        - ReadWriteMany
+      hostPath:
+        path: "/mnt/data"
+---
+    kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: postgres-pv-claim
+      labels:
+        app: postgres
+    spec:
+      storageClassName: manual
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 8Gi
+---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: postgres
+      labels:
+        app: postgres
+    spec:
+       ports:
+        - name: postgres
+          port: {{ .Values.postgres.containerPort }}
+          targetPort: {{ .Values.postgres.containerPort }}
+       clusterIP: None
+       selector:
+        app: postgres
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-conf
+data:
+  POSTGRES_USER: {{ .Values.postgres.env.POSTGRES_USER }}
+  POSTGRES_DB: {{ .Values.postgres.env.POSTGRES_DB }}
+  POSTGRES_PASSWORD: {{ .Values.postgres.env.POSTGRES_PASSWORD }}
