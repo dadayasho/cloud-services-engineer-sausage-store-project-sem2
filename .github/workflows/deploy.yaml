@@ -77,11 +77,16 @@ jobs:
         - name: Check out the repo
           uses: actions/checkout@v3
 
+        - name: Install Helm
+          uses: azure/setup-helm@v3
+          with:
+            version: 'latest'
+
         - name: Create chart tgz
           run: |
             version=$(grep '^version:' sausage-store-chart/Chart.yaml | awk '{print $2}')
             helm package sausage-store-chart
             echo "$NEXUS_URL/repository/$NEXUS_HELM_REPO/"
-            curl -u "$NEXUS_USER:$NEXUS_PASSWORD" \
+            curl  -v -u "$NEXUS_USER:$NEXUS_PASSWORD" \
               --upload-file sausage-store-$version.tgz \
               "$NEXUS_URL/repository/$NEXUS_HELM_REPO/"
