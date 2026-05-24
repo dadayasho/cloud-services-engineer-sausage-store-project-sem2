@@ -59,6 +59,7 @@ metadata:
   name: postgres-pv-claim
   labels:
     app: postgresql
+  namespace: {{ .Release.Namespace }}
 spec:
   storageClassName: manual
   accessModes:
@@ -73,6 +74,7 @@ metadata:
   name: postgresql
   labels:
     app: postgresql
+  namespace: {{ .Release.Namespace }}
 spec:
     ports:
     - name: postgresql

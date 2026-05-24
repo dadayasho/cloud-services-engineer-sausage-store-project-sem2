@@ -4,6 +4,7 @@ metadata:
   name: {{ .Release.Name }}-{{ .Chart.Name }}
   labels:
     app: {{ .Release.Name }}-{{ .Chart.Name }}
+    namespace: {{ .Release.Namespace }}
 spec:
     ports:
     - name: {{ .Release.Name }}-{{ .Chart.Name }}
