@@ -96,7 +96,7 @@ jobs:
             charts_dir: sausage_store_chart
             charts_repo_url: $NEXUS_URL/repository/$NEXUS_HELM_REPO
             username: "$NEXUS_HELM_REPO_USER"
-            passowr: "$NEXUS_HELM_REPO_PASSWORD"
+            password: "$NEXUS_HELM_REPO_PASSWORD"
           env:
             CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
             NEXUS_URL: "${{ secrets.NEXUS_URL }}"
