@@ -90,12 +90,3 @@ jobs:
           env:
             CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
             NEXUS_URL: "${{ secrets.NEXUS_URL }}"
-
-  # Деплоим приложения в кластер Kubernetes с помощью helm-чарт
-  deploy_helm_chart_to_kubernetes:
-      name: Deploy Helm Chart To Kubernetes
-      runs-on: ubuntu-latest
-      needs: add_helm_chart_to_nexus
-
-      steps:
-      #### Опишите необходимые шаги
