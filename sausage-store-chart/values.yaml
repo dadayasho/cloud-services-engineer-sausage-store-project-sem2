@@ -14,12 +14,14 @@ frontend:
     type: Recreate
   service:
     port: 80
+  global:
+    imagePullPolicy: Always
   ingress:
-    host: YOUR_STUDENT_HOSTNAME.students-projects.ru # Корректный домен будет указан в задании
+    host: front-dadayasho.2sem.students-projects.ru # Корректный домен будет указан в задании
     path: /
     pathType: Prefix
   containerPort: 80
-  image: YOUR_DOCKERHUB/sausage-frontend:latest
+  image: tonysoprano228/sausage-frontend:latest
   resources:
     requests:
       memory: "128Mi"
@@ -45,8 +47,12 @@ backend:
   revisionHistoryLimit: 15
   replicas: 1
   strategy:
-  ### Опишите стратегию RollingUpdate для бэкенда
-  image: YOUR_DOCKERHUB/sausage-backend:latest
+    type: RollingUpdate
+    rollingUpdate:
+       maxSurge: 25%
+       maxUnavailable: 25%
+
+  image: tonysoprano228/sausage-backend:latest
   imagePullPolicy: Always
   resources:
     requests:
@@ -57,20 +63,50 @@ backend:
       cpu: "1"
   containerPort: 8080
   livenessProbe:
-  ### Опишите LivenessProbe для бэкенда
-  vpa:
-  ### Опишите VPA для бэкенда
+    httpGet:
+        path: /actuator/health
+        port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 5
+      
+  vpa: # автоскейлинг
+    updatePolicy:
+      updateMode: "Off"
+    resourcePolicy:
+      containerPolicies:
+      - containerName: "*"
+        mode: "Auto"
+        controlledResources: ["cpu", "memory"]
+        minAllowed:
+          cpu: 0m
+          memory: 0Mi
+        maxAllowed:
+          cpu: 250m
+          memory: 500Mi
 
 backend-report:
-### Опишите значения для backend-report
-### Приложение должно использовать стратегию Recreate
-### Приложение использует переменную PORT - порт, на котором оно запустится и DB - Uri-подключение к mongodb. 
-### DB положите в Secret, PORT в ConfigMap
-### Опишите HPA для backend-report
-
+  image: tonysoprano228/sausage-backend-report:latest
+  containerPort: 8080
+  db_url: mongodb://store:storepassword@mongodb:27017/sausage-store?authSource=admin
+  strategy:
+    type: Recreate
+  hpa:
+    minReplicas: 1
+    maxReplicas: 3
+    pods:
+      metric:
+        name: vllm_request_latency_seconds
+      target:
+        type: AverageValue
+        averageValue: 200m
+  
 infra:
   postgresql:
-  ### Опишите необходимые переменные для развертывания PostgresQL в кластере Kubernetes
+    containerPort: 5432
+    POSTGRES_USER: store
+    POSTGRES_DB: sausage-store
+    POSTGRES_PASSWORD: storepassword
+
   mongodb:
     env:
       MONGO_INITDB_ROOT_USERNAME: root

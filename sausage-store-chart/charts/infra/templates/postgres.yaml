@@ -1,86 +1,83 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres
+  name: postgresql
+  namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook-weight: "-5"
 spec:
-  serviceName: postgres
+  serviceName: postgresql
   selector:
    matchLabels:
-    app: postgres
+    app: postgresql
   replicas: 1
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgresql
     spec:
       containers:
-        - name: postgres
+        - name: postgresql
           image: postgres:latest
           imagePullPolicy: "IfNotPresent"
-          envFrom:
-          - configMapRef:
-              name: mongodb-conf
+          
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.POSTGRES_USER }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.POSTGRES_DB }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgresql.POSTGRES_PASSWORD }}
 
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
+            - mountPath: /var/lib/postgresql/
               name: postgredb
       volumes:
         - name: postgredb
           persistentVolumeClaim:
             claimName: postgres-pv-claim
 ---
-    kind: PersistentVolume
-    apiVersion: v1
-    metadata:
-      name: postgres-pv-volume
-      labels:
-        type: local
-        app: postgres
-    spec:
-      storageClassName: manual
-      capacity:
-        storage: 8Gi
-      accessModes:
-        - ReadWriteMany
-      hostPath:
-        path: "/mnt/data"
----
-    kind: PersistentVolumeClaim
-    apiVersion: v1
-    metadata:
-      name: postgres-pv-claim
-      labels:
-        app: postgres
-    spec:
-      storageClassName: manual
-      accessModes:
-        - ReadWriteMany
-      resources:
-        requests:
-          storage: 8Gi
----
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: postgres
-      labels:
-        app: postgres
-    spec:
-       ports:
-        - name: postgres
-          port: {{ .Values.postgres.containerPort }}
-          targetPort: {{ .Values.postgres.containerPort }}
-       clusterIP: None
-       selector:
-        app: postgres
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-volume
+  labels:
+    type: local
+    app: postgresql
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data"
 ---
 apiVersion: v1
-kind: ConfigMap
+kind: PersistentVolumeClaim
 metadata:
-  name: postgres-conf
-data:
-  POSTGRES_USER: {{ .Values.postgres.env.POSTGRES_USER }}
-  POSTGRES_DB: {{ .Values.postgres.env.POSTGRES_DB }}
-  POSTGRES_PASSWORD: {{ .Values.postgres.env.POSTGRES_PASSWORD }}
+  name: postgres-pv-claim
+  labels:
+    app: postgresql
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  labels:
+    app: postgresql
+spec:
+    ports:
+    - name: postgresql
+      port: {{ .Values.postgresql.containerPort }}
+      targetPort: {{ .Values.postgresql.containerPort }}
+    clusterIP: None
+    selector:
+      app: postgresql
