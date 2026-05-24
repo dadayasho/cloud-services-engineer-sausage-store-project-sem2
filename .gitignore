@@ -1,1 +1,7 @@
 .env
+minikube
+helm_restart.sh
+sausage-store-chart/.helmignore
+sausage-store-chart/Chart.lock
+nginx.tmpl-copy
+what-to-do.txt
