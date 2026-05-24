@@ -80,6 +80,7 @@ jobs:
           run: |
             version=$(grep '^version:' sausage-store-chart/Chart.yaml | awk '{print $2}')
             helm package sausage-store-chart
+            echo "$NEXUS_URL/repository/$NEXUS_HELM_REPO/"
             curl -u "$NEXUS_USER:$NEXUS_PASSWORD" \
               --upload-file sausage-store-chart-$version.tgz \
               "$NEXUS_URL/repository/$NEXUS_HELM_REPO/"        
