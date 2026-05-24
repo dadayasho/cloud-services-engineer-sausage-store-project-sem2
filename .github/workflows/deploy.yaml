@@ -66,7 +66,7 @@ jobs:
             context: ./backend-report/
             push: true
             tags: $DOCKERHUB/sausage-backend-report:latest
-  # Упаковываем helm-чарт и пушим его в Nexus
+  #
   add_helm_chart_to_nexus:
       name: Add Helm Chart To Nexus
       runs-on: ubuntu-latest
