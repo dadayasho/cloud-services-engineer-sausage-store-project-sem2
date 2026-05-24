@@ -83,5 +83,5 @@ jobs:
             helm package sausage-store-chart
             echo "$NEXUS_URL/repository/$NEXUS_HELM_REPO/"
             curl -u "$NEXUS_USER:$NEXUS_PASSWORD" \
-              --upload-file sausage-store-chart-$version.tgz \
+              --upload-file sausage-store-$version.tgz \
               "$NEXUS_URL/repository/$NEXUS_HELM_REPO/"
