@@ -67,30 +67,6 @@ data:
   MONGO_INITDB_ROOT_USERNAME: {{ .Values.mongodb.env.MONGO_INITDB_ROOT_USERNAME }}
   MONGO_INITDB_ROOT_PASSWORD: {{ .Values.mongodb.env.MONGO_INITDB_ROOT_PASSWORD }}
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: mongodb
-  labels:
-    app: mongodb
-  namespace: {{ .Release.Namespace }}
-spec:
-  ports:
-  - port: {{ .Values.mongodb.containerPort }}
-    targetPort: {{ .Values.mongodb.containerPort }}
-  selector:
-    app: mongodb
-  clusterIP: None
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mongodb-conf
-  namespace: {{ .Release.Namespace }}
-data:
-  MONGO_INITDB_ROOT_USERNAME: {{ .Values.mongodb.env.MONGO_INITDB_ROOT_USERNAME }}
-  MONGO_INITDB_ROOT_PASSWORD: {{ .Values.mongodb.env.MONGO_INITDB_ROOT_PASSWORD }}
----
 apiVersion: batch/v1
 kind: Job
 metadata:
