@@ -38,6 +38,7 @@ Then open your browser and go to [http://localhost](http://localhost)
 
 ---
 
+Вот мой nexus репозиторий - `https://nexus.cloud-services-engineer.education-services.ru/#browse/browse:dadayasho-sausage-store-helm`
 https://front-dadayasho.2sem.students-projects.ru
 
 Вообщем, все сделано
@@ -106,6 +107,9 @@ HPA работает
 NAME                               REFERENCE                                 TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
 sausage-store-backend-report-hpa   Deployment/sausage-store-backend-report   cpu: 1%/80%   1         3         1          54m
 ```
+Probes то же.
+
+Миграции сделаны - ![Миграции](backend/src/main/resources/db/migration)
 
 Заказы создаются.
 
@@ -113,6 +117,14 @@ sausage-store-backend-report-hpa   Deployment/sausage-store-backend-report   cpu
 
 Все секреты запичкал в secrets.
 
-Все работает.
+```bash
+maxim@ubuntu:~/cloud-services-engineer-sausage-store-project-sem2$ kubectl get pod
+NAME                                            READY   STATUS    RESTARTS      AGE
+mongodb-0                                       1/1     Running   0             69m
+postgresql-0                                    1/1     Running   0             69m
+sausage-store-backend-78f7ff6656-sh485          1/1     Running   0             69m
+sausage-store-backend-report-5dbbc7b9d4-4kc7m   1/1     Running   4 (68m ago)   69m
+sausage-store-frontend-7c48874865-77sgd         1/1     Running   0             69m
+```
 
-Вот мой nexus репозиторий - `https://nexus.cloud-services-engineer.education-services.ru/#browse/browse:dadayasho-sausage-store-helm`
+
