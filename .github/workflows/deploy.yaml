@@ -109,7 +109,7 @@ jobs:
 
       - uses: actions-hub/kubectl@master
         env:
-          KUBE_CONFIG: $KUBE_CONFIG
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
 
       - name: Update helm repo and deploy
         run: |
