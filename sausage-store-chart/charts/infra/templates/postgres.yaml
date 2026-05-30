@@ -7,10 +7,10 @@ metadata:
     helm.sh/hook-weight: "-5"
 spec:
   serviceName: postgresql
-  selector:
-   matchLabels:
-    app: postgresql
   replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
   template:
     metadata:
       labels:
@@ -20,53 +20,36 @@ spec:
         - name: postgresql
           image: postgres:latest
           imagePullPolicy: "IfNotPresent"
-          
           env:
             - name: POSTGRES_USER
-              value: {{ .Values.postgresql.POSTGRES_USER }}
+              value: {{ .Values.postgresql.POSTGRES_USER | quote }}
             - name: POSTGRES_DB
-              value: {{ .Values.postgresql.POSTGRES_DB }}
+              value: {{ .Values.postgresql.POSTGRES_DB | quote }}
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgresql.POSTGRES_PASSWORD }}
-
+              value: {{ .Values.postgresql.POSTGRES_PASSWORD | quote }}
+          ports:
+            - containerPort: {{ .Values.postgresql.containerPort }}
+              name: postgres
           volumeMounts:
             - mountPath: /var/lib/postgresql/
-              name: postgredb
-      volumes:
-        - name: postgredb
-          persistentVolumeClaim:
-            claimName: postgres-pv-claim
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: postgres-pv-volume
-  labels:
-    type: local
-    app: postgresql
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 3Gi
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: "/mnt/data"
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pv-claim
-  labels:
-    app: postgresql
-  namespace: {{ .Release.Namespace }}
-spec:
-  storageClassName: manual
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 3Gi
+              name: postgres-data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+
 ---
 apiVersion: v1
 kind: Service

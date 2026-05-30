@@ -10,10 +10,15 @@ env:
   NEXUS_HELM_REPO_USER: ${{ secrets.NEXUS_HELM_REPO_USER }}
   NEXUS_HELM_REPO_PASSWORD: ${{ secrets.NEXUS_HELM_REPO_PASSWORD }}
   NEXUS_URL: ${{ secrets.NEXUS_URL }}
-  #SAUSAGE_STORE_NAMESPACE: YOUR_NAMESPACE
+  
   DOCKERHUB: ${{ secrets.DOCKER_USER }}
-  #KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-  #VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+  KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+  
+  VAULT_TOKEN: ${{ secrets.VAULT_TOKEN}}
+  VAULT_IP: ${{ secrets.VAULT_IP}}
+  VAULT_PORT: ${{ secrets.VAULT_PORT}}
+  VAULT_PATH: ${{ secrets.VAULT_PATH}}
+  NAMESPACE: ${{ secrets.NAMESPACE}}
 
 jobs:
   # Сборка и пуш образов в докерхаб:
@@ -67,7 +72,7 @@ jobs:
             context: ./backend-report/
             push: true
             tags: ${{ secrets.DOCKER_USER }}/sausage-backend-report:latest
-  #
+
   add_helm_chart_to_nexus:
       name: Add Helm Chart To Nexus
       runs-on: ubuntu-latest
@@ -90,3 +95,34 @@ jobs:
             curl  -v -u "$NEXUS_HELM_REPO_USER:$NEXUS_HELM_REPO_PASSWORD" \
               --upload-file sausage-store-$version.tgz \
               "$NEXUS_URL/repository/$NEXUS_HELM_REPO/"
+
+  deploy_into_cluster:
+    name: Deployment
+    runs-on: ubuntu-latest
+    needs: add_helm_chart_to_nexus
+
+    steps:
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: $KUBE_CONFIG
+
+      - name: Update helm repo and deploy
+        run: |
+          helm repo add dadayasho-sausage-store "$NEXUS_URL/repository/dadayasho-sausage-store-helm" \
+          --username "$NEXUS_HELM_REPO_USER" \
+          --password "$NEXUS_HELM_REPO_PASSWORD"
+
+          helm repo update
+
+          helm upgrade --install sausage-store dadayasho-sausage-store/sausage-store \
+            --set global.vault.vaultToken="$VAULT_TOKEN" \
+            --set global.vault.host="$VAULT_IP" \
+            --set global.vault.port="$VAULT_PORT" \
+            --set global.vault.path="$VAULT_PATH" \
+            --namespace "$NAMESPACE"
+         

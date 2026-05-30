@@ -5,3 +5,5 @@ sausage-store-chart/.helmignore
 sausage-store-chart/Chart.lock
 nginx.tmpl-copy
 what-to-do.txt
+kube-config.txt
+kube-config.yaml

@@ -26,10 +26,11 @@ spec:
         - containerPort: {{ .Values.mongodb.containerPort }}
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "50m"
-          limits:
             memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "100m"
         volumeMounts:
         - name: mongodb-data
           mountPath: /data/db
@@ -65,50 +66,6 @@ metadata:
 data:
   MONGO_INITDB_ROOT_USERNAME: {{ .Values.mongodb.env.MONGO_INITDB_ROOT_USERNAME }}
   MONGO_INITDB_ROOT_PASSWORD: {{ .Values.mongodb.env.MONGO_INITDB_ROOT_PASSWORD }}
----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: mongodb
-  annotations:
-    helm.sh/hook-weight: "-5"
-  namespace: {{ .Release.Namespace }}
-spec:
-  serviceName: mongodb
-  replicas: 1
-  selector:
-    matchLabels:
-      app: mongodb
-  template:
-    metadata:
-      labels:
-        app: mongodb
-    spec:
-      containers:
-      - name: mongodb
-        image: mongo:7.0
-        envFrom:
-          - configMapRef:
-              name: mongodb-conf
-        ports:
-        - containerPort: {{ .Values.mongodb.containerPort }}
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "50m"
-          limits:
-            memory: "256Mi"
-        volumeMounts:
-        - name: mongodb-data
-          mountPath: /data/db
-  volumeClaimTemplates:
-  - metadata:
-      name: mongodb-data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
@@ -157,11 +114,24 @@ spec:
                 sleep 2;
               done;
               mongosh "mongodb://{{ .Values.mongodb.env.MONGO_INITDB_ROOT_USERNAME }}:{{ .Values.mongodb.env.MONGO_INITDB_ROOT_PASSWORD }}@mongodb:27017/admin?authSource=admin"
-              --eval 'db.getSiblingDB("admin").createUser({
-                user: "store",
-                pwd: "storepassword",
-                roles: [
-                  { role: "readWrite", db: "sausage-store" }
-                ]
-              })'
-
+              --eval 'var user = db.getSiblingDB("admin").getUser("store");
+              if (user) {
+                print("User already exists, skipping");
+                quit(0);
+              } else {
+                db.getSiblingDB("admin").createUser({
+                  user: "store",
+                  pwd: "storepassword",
+                  roles: [
+                    { role: "readWrite", db: "sausage-store" }
+                  ]
+                });
+                print("User created successfully");
+              }'
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "50m"

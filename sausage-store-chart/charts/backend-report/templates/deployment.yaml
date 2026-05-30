@@ -25,12 +25,19 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "100m"
 
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: backend-report-hpa
+  name: {{ .Release.Name }}-backend-report-hpa
   namespace: {{ .Release.Namespace }}
 spec:
   scaleTargetRef:
@@ -40,9 +47,4 @@ spec:
   minReplicas: {{ .Values.hpa.minReplicas }}
   maxReplicas: {{ .Values.hpa.maxReplicas }}
   metrics:
-    - type: Pods
-      pods:
-        metric:
-          {{ toYaml .Values.hpa.pods.metric | nindent 10 }}
-        target:
-          {{ toYaml .Values.hpa.pods.target | nindent 10 }}
+    {{ toYaml .Values.hpa.metrics | nindent 4 }}
