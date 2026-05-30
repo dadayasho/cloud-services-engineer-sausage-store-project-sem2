@@ -34,3 +34,85 @@ sudo http-server ./dist/frontend/ -p 80 --proxy http://localhost:8080
 ```
 
 Then open your browser and go to [http://localhost](http://localhost)
+
+
+---
+
+https://front-dadayasho.2sem.students-projects.ru
+
+Вообщем, все сделано
+
+Докерфайлы корректны, чарт собирается пушится в nexus, раскатывается.
+
+VPA работает
+```bash
+Name:         sausage-store-backend-vpa
+Namespace:    r-devops-magistracy-project-2sem-1571688726
+Labels:       app.kubernetes.io/managed-by=Helm
+Annotations:  meta.helm.sh/release-name: sausage-store
+              meta.helm.sh/release-namespace: r-devops-magistracy-project-2sem-1571688726
+API Version:  autoscaling.k8s.io/v1
+Kind:         VerticalPodAutoscaler
+Metadata:
+  Creation Timestamp:  2026-05-30T10:42:42Z
+  Generation:          1
+  Resource Version:    289108270
+  UID:                 8bca9dfa-1a47-45fe-a23f-46acab61dede
+Spec:
+  Resource Policy:
+    Container Policies:
+      Container Name:  *
+      Controlled Resources:
+        cpu
+        memory
+      Max Allowed:
+        Cpu:     200m
+        Memory:  256Mi
+      Min Allowed:
+        Cpu:     0m
+        Memory:  0Mi
+      Mode:      Auto
+  Target Ref:
+    API Version:  apps/v1
+    Kind:         Deployment
+    Name:         sausage-store-backend
+  Update Policy:
+    Update Mode:  Off
+Status:
+  Conditions:
+    Last Transition Time:  2026-05-30T10:43:13Z
+    Status:                True
+    Type:                  RecommendationProvided
+  Recommendation:
+    Container Recommendations:
+      Container Name:  backend
+      Lower Bound:
+        Cpu:     25m
+        Memory:  256Mi
+      Target:
+        Cpu:     25m
+        Memory:  256Mi
+      Uncapped Target:
+        Cpu:     25m
+        Memory:  272061154
+      Upper Bound:
+        Cpu:     119m
+        Memory:  256Mi
+Events:          <none>
+```
+
+HPA работает
+```bash
+NAME                               REFERENCE                                 TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+sausage-store-backend-report-hpa   Deployment/sausage-store-backend-report   cpu: 1%/80%   1         3         1          54m
+```
+
+Заказы создаются.
+
+Так же реализовал свой удаленный vault, правда с сертификатами не смог разобраться, так как spring жалорвался на самоподписанные сертификаты. Пришлось делать через http.
+
+Все секреты запичкал в secrets.
+
+Все работает.
+
+Вот мой nexus репозиторий - `https://nexus.cloud-services-engineer.education-services.ru/#browse/browse:dadayasho-sausage-store-helm`
